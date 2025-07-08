@@ -1,133 +1,137 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getAllGuides } from '../api/guide';
-import { toggleLike } from '../api/guide';
-import Navbar from '../components/Navbar';
+import { useNavigate } from 'react-router-dom';
+
+const VALID_AGENTS = [
+  'Astra', 'Breach', 'Brimstone', 'Chamber', 'Clove', 'Cypher', 'Deadlock', 'Fade',
+  'Gekko', 'Harbor', 'Iso', 'Jett', 'KAYO', 'Killjoy', 'Neon', 'Omen', 'Phoenix',
+  'Raze', 'Reyna', 'Sage', 'Skye', 'Sova', 'Viper'
+];
+
+const VALID_MAPS = [
+  'Ascent', 'Bind', 'Breeze', 'Fracture', 'Haven', 'Icebox', 'Lotus', 'Split', 'Sunset'
+];
 
 function GuideList() {
   const [guides, setGuides] = useState([]);
-  const [playingVideoId, setPlayingVideoId] = useState(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState('All');
+  const [selectedMap, setSelectedMap] = useState('All');
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchGuides = async () => {
-      try {
-        const data = await getAllGuides();
-        setGuides(data);
-      } catch (error) {
-        console.error('Error fetching guides:', error);
-        alert('Gagal mengambil data guides!');
-      }
+    const fetchData = async () => {
+      const data = await getAllGuides();
+      setGuides(data);
     };
-
-    fetchGuides();
+    fetchData();
   }, []);
 
-  const handleCreateGuide = () => {
-    navigate('/guides/create');
-  };
-
-  const extractYoutubeId = (url) => {
-    const regExp = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/;
-    const match = url.match(regExp);
-    return match ? match[1] : '';
-  };
-
-  const convertToEmbedURL = (url) => {
-    const videoId = extractYoutubeId(url);
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-  };
-
-  const handleToggleLike = async (guideId) => {
-    try {
-      await toggleLike(guideId);
-      // Refresh data setelah like/unlike
-      const updated = await getAllGuides();
-      setGuides(updated);
-    } catch (err) {
-      console.error('Failed to toggle like:', err);
-      alert('Gagal melakukan like/unlike');
-    }
-  };
+  const handleFilterToggle = () => setShowFilter(!showFilter);
+  const filteredGuides = guides.filter((g) => {
+    return (selectedAgent === 'All' || g.agent === selectedAgent) &&
+           (selectedMap === 'All' || g.map_name === selectedMap);
+  });
 
   return (
-    <div>
-      <Navbar />
-
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">All Guides</h2>
+    <div className="relative">
+      <div className="flex justify-between p-4">
+        <h1 className="text-2xl font-bold">Valorant Guides</h1>
+        <div className="space-x-2">
           <button
-            onClick={handleCreateGuide}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            onClick={handleFilterToggle}
+            className="bg-gray-700 px-3 py-1 rounded text-white hover:bg-gray-600"
           >
-            + Create Guide
+            Filter
+          </button>
+          <button
+            onClick={() => navigate('/guides/create')}
+            className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-400"
+          >
+            Contribute a Guide
           </button>
         </div>
+      </div>
 
-        <ul className="space-y-6">
-          {guides.map((guide) => (
-            <li key={guide.id} className="border p-4 rounded shadow space-y-2">
-              <h3 className="text-xl font-bold">{guide.title}</h3>
-              <p className="text-sm text-gray-500">Created by : {guide.author_username}</p>
-              <p className="text-sm">{guide.description}</p>
+      {showFilter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-[#10141c] p-6 rounded-lg w-4/5 max-w-3xl shadow-lg text-white relative">
+            <button
+              className="absolute top-3 right-3 text-red-400 text-sm hover:text-red-600"
+              onClick={handleFilterToggle}
+            >
+              ✕ Close
+            </button>
 
-              {/* Display image with optional video play button */}
-              {guide.image_url && (
-                <div className="relative w-full h-64 mt-2">
-                  <img
-                    src={guide.image_url}
-                    alt={guide.title}
-                    className="w-full h-full object-cover rounded"
-                  />
-
-                  {guide.video_url && playingVideoId !== guide.id && (
-                    <div
-                      className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-40 flex items-center justify-center cursor-pointer rounded"
-                      onClick={() => setPlayingVideoId(guide.id)}
-                    >
-                      <div className="text-white text-4xl bg-black bg-opacity-60 rounded-full p-4">
-                        ▶
-                      </div>
-                    </div>
-                  )}
-
-                  {guide.video_url && playingVideoId === guide.id && (
-                    <iframe
-                      src={convertToEmbedURL(guide.video_url)}
-                      className="absolute top-0 left-0 w-full h-full rounded"
-                      title={`video-${guide.id}`}
-                      allowFullScreen
-                    />
-                  )}
-                </div>
-              )}
-
-              <div className="text-sm text-gray-600 mt-2 space-y-1">
-                <p>
-                  Category: <span className="font-medium">{guide.category}</span>
-                </p>
-                <p>
-                  Agent: <span className="font-medium">{guide.agent}</span>
-                </p>
-                <p>
-                  Map: <span className="font-medium">{guide.map_name}</span>
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between mt-2">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-2">Filter by Agent</h2>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => handleToggleLike(guide.id)}
-                  className={`flex items-center gap-1 text-sm font-medium ${guide.liked_by_user ? 'text-red-600' : 'text-gray-600'
-                    }`}
-                >
-                  {guide.liked_by_user ? '❤️' : '🤍'} {guide.likes_count}
-                </button>
+                  onClick={() => setSelectedAgent('All')}
+                  className={`px-3 py-1 rounded ${selectedAgent === 'All' ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-500`}
+                >All Agents</button>
+                {VALID_AGENTS.map((agent) => (
+                  <button
+                    key={agent}
+                    onClick={() => setSelectedAgent(agent)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded ${selectedAgent === agent ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-500`}
+                  >
+                    <img
+                      src={`/images/${agent}_icon.webp`}
+                      alt={agent}
+                      className="w-5 h-5 rounded-full"
+                    />
+                    {agent}
+                  </button>
+                ))}
               </div>
+            </div>
 
-            </li>
-          ))}
-        </ul>
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Filter by Map</h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedMap('All')}
+                  className={`px-3 py-1 rounded ${selectedMap === 'All' ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-500`}
+                >All Maps</button>
+                {VALID_MAPS.map((map) => (
+                  <button
+                    key={map}
+                    onClick={() => setSelectedMap(map)}
+                    className={`px-3 py-1 rounded ${selectedMap === map ? 'bg-red-600' : 'bg-gray-700'} hover:bg-red-500`}
+                  >
+                    {map}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="p-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredGuides.map((guide) => (
+          <div key={guide.id} className="bg-gray-800 text-white rounded shadow overflow-hidden">
+            <img
+              src={guide.image_url}
+              alt={guide.title}
+              className="w-full h-40 object-cover"
+            />
+            <div className="p-4">
+              <h3 className="font-bold text-lg mb-1">{guide.title}</h3>
+              <p className="text-sm mb-1 text-gray-300">Agent: {guide.agent} • Map: {guide.map_name}</p>
+              <p className="text-sm mb-3 text-gray-400">{guide.description}</p>
+              {guide.video_url && (
+                <iframe
+                  className="w-full aspect-video rounded"
+                  src={`https://www.youtube.com/embed/${guide.video_url.split('v=')[1]}`}
+                  allowFullScreen
+                ></iframe>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

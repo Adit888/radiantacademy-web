@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createGuide } from '../api/guide';
-import Navbar from '../components/Navbar';
 
 const CATEGORIES = ['AIM', 'Mechanics', 'Lineup', 'General'];
 const AGENTS = ['Jett', 'Sova', 'Reyna', 'Omen', 'Viper', 'Killjoy', 'Sage', 'Phoenix'];
@@ -38,7 +37,6 @@ function CreateGuide() {
 
   return (
     <div>
-      <Navbar />
       <div className="max-w-xl mx-auto mt-8 p-6 border rounded shadow">
         <h2 className="text-2xl font-bold mb-4 text-center">Create New Guide</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

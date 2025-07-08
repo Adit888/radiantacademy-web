@@ -11,23 +11,74 @@ import AgentList from './pages/AgentList';
 import AgentGuide from './pages/AgentGuide';
 
 import NotFound from './pages/NotFound';
+import MainLayout from './components/MainLayout';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-
+      {/* Halaman tanpa Navbar */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      <Route path="/guides" element={<GuideList />} />
-      <Route path="/guides/create" element={<CreateGuide />} />
-      <Route path="/guides/:id" element={<GuideDetail />} />
+      {/* Halaman dengan Navbar */}
+      <Route
+        path="/"
+        element={
+          <MainLayout>
+            <Home />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/guides"
+        element={
+          <MainLayout>
+            <GuideList />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/guides/create"
+        element={
+          <MainLayout>
+            <CreateGuide />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/guides/:id"
+        element={
+          <MainLayout>
+            <GuideDetail />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/agents"
+        element={
+          <MainLayout>
+            <AgentList />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/agents/:agentName"
+        element={
+          <MainLayout>
+            <AgentGuide />
+          </MainLayout>
+        }
+      />
 
-      <Route path="/agents" element={<AgentList />} />
-      <Route path="/agents/:agentName" element={<AgentGuide />} />
-
-      <Route path="*" element={<NotFound />} />
+      {/* Not Found */}
+      <Route
+        path="*"
+        element={
+          <MainLayout>
+            <NotFound />
+          </MainLayout>
+        }
+      />
     </Routes>
   );
 }
