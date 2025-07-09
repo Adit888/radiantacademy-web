@@ -12,15 +12,17 @@ class User(db.Model):
     role = db.Column(db.String(20), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # 🔒 Password methods
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    guides = db.relationship('Guide', backref='author', lazy=True)
-    comments = db.relationship('Comment', back_populates='user', lazy=True)
-    likes = db.relationship('Like', backref='user', lazy=True)
+    # 🔗 Relasi
+    guides = db.relationship('Guide', back_populates='user', lazy='select')
+    comments = db.relationship('Comment', back_populates='user', lazy='select')
+    likes = db.relationship('Like', backref='user', lazy='select')
 
 
 class Guide(db.Model):
@@ -36,18 +38,18 @@ class Guide(db.Model):
     map_name = db.Column(db.String(50), nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user = db.relationship('User', back_populates='guides', lazy='select')  # ✅ relasi eksplisit
 
-    # ✅ Tambahkan cascade agar komentar dan like ikut terhapus
     comments = db.relationship(
         'Comment',
         back_populates='guide',
-        lazy=True,
+        lazy='select',
         cascade='all, delete-orphan'
     )
     likes = db.relationship(
         'Like',
         backref='guide',
-        lazy=True,
+        lazy='select',
         cascade='all, delete-orphan'
     )
 
@@ -66,6 +68,7 @@ class Guide(db.Model):
             "agent": self.agent,
             "map_name": self.map_name,
             "author_id": self.user_id,
+            "author_username": self.user.username if self.user else None,
             "likes_count": len(self.likes),
             "liked_by_user": liked_by_user,
             "comments": [
@@ -103,6 +106,5 @@ class Comment(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # ✅ back_populates dua arah
-    user = db.relationship('User', back_populates='comments', lazy=True)
-    guide = db.relationship('Guide', back_populates='comments', lazy=True)
+    user = db.relationship('User', back_populates='comments', lazy='select')
+    guide = db.relationship('Guide', back_populates='comments', lazy='select')

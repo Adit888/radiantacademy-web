@@ -13,6 +13,8 @@ import AgentGuide from './pages/AgentGuide';
 import NotFound from './pages/NotFound';
 import MainLayout from './components/MainLayout';
 
+import BrimstonePage from "./pages/BrimstonePage";
+
 function App() {
   return (
     <Routes>
@@ -54,6 +56,14 @@ function App() {
         }
       />
       <Route
+        path="/guides/edit/:id"
+        element={
+          <MainLayout>
+            <CreateGuide />
+          </MainLayout>
+        }
+      />
+      <Route
         path="/agents"
         element={
           <MainLayout>
@@ -79,6 +89,7 @@ function App() {
           </MainLayout>
         }
       />
+       <Route path="/agents/brimstone" element={<BrimstonePage />} />
     </Routes>
   );
 }
